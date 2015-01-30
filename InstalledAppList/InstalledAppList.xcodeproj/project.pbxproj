@@ -17,6 +17,7 @@
 		3E7A014B19D93DD400336426 /* InstalledAppListTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E7A014A19D93DD400336426 /* InstalledAppListTests.m */; };
 		3E7A015519D93EAD00336426 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E7A015419D93EAD00336426 /* MobileCoreServices.framework */; };
 		48EB12A61A7B42E1002F5B8A /* AppTimeCounter.m in Sources */ = {isa = PBXBuildFile; fileRef = 48EB12A51A7B42E0002F5B8A /* AppTimeCounter.m */; };
+		48EB12A81A7B5515002F5B8A /* PhoneticContacts.1 in Resources */ = {isa = PBXBuildFile; fileRef = 48EB12A71A7B5515002F5B8A /* PhoneticContacts.1 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,7 @@
 		3E7A015419D93EAD00336426 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = MobileCoreServices.framework; sourceTree = "<group>"; };
 		48EB12A41A7B42E0002F5B8A /* AppTimeCounter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppTimeCounter.h; sourceTree = "<group>"; };
 		48EB12A51A7B42E0002F5B8A /* AppTimeCounter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppTimeCounter.m; sourceTree = "<group>"; };
+		48EB12A71A7B5515002F5B8A /* PhoneticContacts.1 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.man; path = PhoneticContacts.1; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +97,7 @@
 				3E7A013019D93DD400336426 /* GLAppDelegate.m */,
 				3E7A013219D93DD400336426 /* GLMasterViewController.h */,
 				3E7A013319D93DD400336426 /* GLMasterViewController.m */,
+				48EB12A71A7B5515002F5B8A /* PhoneticContacts.1 */,
 				48EB12A41A7B42E0002F5B8A /* AppTimeCounter.h */,
 				48EB12A51A7B42E0002F5B8A /* AppTimeCounter.m */,
 				3E7A013519D93DD400336426 /* GLDetailViewController.h */,
@@ -216,6 +219,7 @@
 			files = (
 				3E7A013A19D93DD400336426 /* Main.storyboard in Resources */,
 				3E7A013F19D93DD400336426 /* LaunchScreen.xib in Resources */,
+				48EB12A81A7B5515002F5B8A /* PhoneticContacts.1 in Resources */,
 				3E7A013C19D93DD400336426 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

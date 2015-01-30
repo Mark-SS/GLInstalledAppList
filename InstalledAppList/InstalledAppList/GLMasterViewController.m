@@ -146,6 +146,14 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
     
     //        [data writeToFile:[kPATH_OF_DOCUMENT stringByAppendingString:@"/123"] atomically:YES];
             NSLog(@"%@ = %@", obj.localizedName, obj.boundIconCacheKey);
+            _objects = [[_objects sortedArrayUsingComparator:^NSComparisonResult(LSApplicationProxy *obj1, LSApplicationProxy *obj2) {
+                NSMutableString *pinyin1 = [NSMutableString string];
+                [pinyin1 appendString:phonetic(obj1.localizedName)];
+                NSMutableString *pinyin2 = [NSMutableString string];
+                [pinyin2 appendString:phonetic(obj2.localizedName)];
+                NSComparisonResult result = [pinyin1 compare:pinyin2];
+                return result == NSOrderedDescending;
+            }] mutableCopy];
         }
     }];
     [self.tableView reloadData];
@@ -158,6 +166,16 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
     
 }
 
+static NSString *phonetic(NSString *sourceString) {
+    NSMutableString *source = [sourceString mutableCopy];
+    CFStringTransform((__bridge CFMutableStringRef)source, NULL, kCFStringTransformMandarinLatin, NO);
+    return source;
+}
+
+static NSString *kickNull(NSString *string) {
+    if (!string) return @"";
+    return string;
+}
 
 
 - (void)didReceiveMemoryWarning {
