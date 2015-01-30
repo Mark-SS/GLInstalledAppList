@@ -22,6 +22,8 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
 
 @property NSMutableArray *images;
 
+@property (nonatomic, strong) NSObject* workspace;
+
 @end
 
 @implementation GLMasterViewController
@@ -116,9 +118,9 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
 //    self.navigationItem.rightBarButtonItem = addButton;
     
     Class LSApplicationWorkspace_class = objc_getClass("LSApplicationWorkspace");
-    NSObject* workspace = [LSApplicationWorkspace_class performSelector:@selector(defaultWorkspace)];
+    _workspace = [LSApplicationWorkspace_class performSelector:@selector(defaultWorkspace)];
     //@NSLog(@"apps: %@", [workspace performSelector:@selector(allApplications)]);
-    NSArray *array = [workspace performSelector:@selector(allInstalledApplications)];
+    NSArray *array = [_workspace performSelector:@selector(allInstalledApplications)];
     [array enumerateObjectsUsingBlock:^(LSApplicationProxy *obj, NSUInteger idx, BOOL *stop) {
         NSString *string = [obj performSelector:@selector(applicationIdentifier)];
         if (![string hasPrefix:@"com.apple"]) {
@@ -226,6 +228,12 @@ static NSString *kickNull(NSString *string) {
     return cell;
 }
 
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    LSApplicationProxy *proxy = self.objects[indexPath.row];
+    [_workspace performSelector:@selector(openApplicationWithBundleID:)
+                     withObject:proxy.bundleIdentifier];
+}
 
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
