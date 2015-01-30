@@ -35,7 +35,7 @@ static AppTimeCounter *instance = nil;
     if (self = [super init])
     {
         [self initPrivateAPI];
-        timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(onTimer) userInfo:nil repeats:YES];
+        //timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(onTimer) userInfo:nil repeats:YES];
         currentTopAppId = [self getTopMostAppBundleId];
         if (currentTopAppId != nil && ![currentTopAppId isEqualToString:@""])
         {
