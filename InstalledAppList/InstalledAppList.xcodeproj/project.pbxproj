@@ -16,6 +16,7 @@
 		3E7A013F19D93DD400336426 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3E7A013D19D93DD400336426 /* LaunchScreen.xib */; };
 		3E7A014B19D93DD400336426 /* InstalledAppListTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E7A014A19D93DD400336426 /* InstalledAppListTests.m */; };
 		3E7A015519D93EAD00336426 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E7A015419D93EAD00336426 /* MobileCoreServices.framework */; };
+		48EB12A61A7B42E1002F5B8A /* AppTimeCounter.m in Sources */ = {isa = PBXBuildFile; fileRef = 48EB12A51A7B42E0002F5B8A /* AppTimeCounter.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +46,8 @@
 		3E7A014919D93DD400336426 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3E7A014A19D93DD400336426 /* InstalledAppListTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = InstalledAppListTests.m; sourceTree = "<group>"; };
 		3E7A015419D93EAD00336426 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = MobileCoreServices.framework; sourceTree = "<group>"; };
+		48EB12A41A7B42E0002F5B8A /* AppTimeCounter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppTimeCounter.h; sourceTree = "<group>"; };
+		48EB12A51A7B42E0002F5B8A /* AppTimeCounter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppTimeCounter.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +95,8 @@
 				3E7A013019D93DD400336426 /* GLAppDelegate.m */,
 				3E7A013219D93DD400336426 /* GLMasterViewController.h */,
 				3E7A013319D93DD400336426 /* GLMasterViewController.m */,
+				48EB12A41A7B42E0002F5B8A /* AppTimeCounter.h */,
+				48EB12A51A7B42E0002F5B8A /* AppTimeCounter.m */,
 				3E7A013519D93DD400336426 /* GLDetailViewController.h */,
 				3E7A013619D93DD400336426 /* GLDetailViewController.m */,
 				3E7A013819D93DD400336426 /* Main.storyboard */,
@@ -231,6 +236,7 @@
 			files = (
 				3E7A013119D93DD400336426 /* GLAppDelegate.m in Sources */,
 				3E7A013419D93DD400336426 /* GLMasterViewController.m in Sources */,
+				48EB12A61A7B42E1002F5B8A /* AppTimeCounter.m in Sources */,
 				3E7A012E19D93DD400336426 /* main.m in Sources */,
 				3E7A013719D93DD400336426 /* GLDetailViewController.m in Sources */,
 			);
@@ -431,6 +437,7 @@
 				3E7A015019D93DD400336426 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		3E7A015119D93DD400336426 /* Build configuration list for PBXNativeTarget "InstalledAppListTests" */ = {
 			isa = XCConfigurationList;
@@ -439,6 +446,7 @@
 				3E7A015319D93DD400336426 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

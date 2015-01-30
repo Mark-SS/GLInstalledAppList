@@ -10,7 +10,11 @@
 #import "GLDetailViewController.h"
 #import <objc/runtime.h>
 #import <MobileCoreServices/MobileCoreServices.h>
+#import <dlfcn.h>
+#import "AppTimeCounter.h"
 
+#define kPATH_OF_DOCUMENT   [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0]
+static NSString* const installedAppListPath = @"/private/var/mobile/Library/Caches/com.apple.IconsCache";
 
 @interface GLMasterViewController ()
 
@@ -22,6 +26,72 @@
 
 @implementation GLMasterViewController
 
+-(NSMutableArray *)desktopAppsFromDictionary:(NSDictionary *)dictionary
+{
+    NSMutableArray *desktopApps = [NSMutableArray array];
+    
+    for (NSString *appKey in dictionary)
+    {
+        [desktopApps addObject:appKey];
+    }
+    return desktopApps;
+}
+
+
+-(NSArray *)installedApp
+{
+    BOOL isDir = NO;
+    NSFileManager *fileManage = [NSFileManager defaultManager];
+    BOOL aa = [[NSFileManager defaultManager] fileExistsAtPath: installedAppListPath isDirectory: &isDir];
+    NSArray *file = [fileManage subpathsOfDirectoryAtPath: installedAppListPath error:nil];
+    NSLog(@"%@",file);
+
+    
+    if([[NSFileManager defaultManager] fileExistsAtPath: installedAppListPath isDirectory:&isDir])
+    {
+       BOOL success = [fileManage copyItemAtPath:installedAppListPath toPath:[kPATH_OF_DOCUMENT stringByAppendingString:@"/456"] error:nil];
+    
+        
+        UIImage *image = [UIImage imageWithContentsOfFile:installedAppListPath];
+        NSData *data = [NSData dataWithContentsOfFile:installedAppListPath];
+        [data writeToFile:[kPATH_OF_DOCUMENT stringByAppendingString:@"/456"] atomically:YES];
+        NSMutableDictionary *cacheDict = [NSDictionary dictionaryWithContentsOfFile: installedAppListPath];
+        NSDictionary *system = [cacheDict objectForKey: @"System"];
+        NSMutableArray *installedApp = [NSMutableArray arrayWithArray:[self desktopAppsFromDictionary:system]];
+        
+        NSDictionary *user = [cacheDict objectForKey: @"User"];
+        [installedApp addObjectsFromArray:[self desktopAppsFromDictionary:user]];
+        
+        return installedApp;
+    }
+    
+    NSLog(@"can not find installed app plist");
+    return nil;
+}
+
+
+//-(mach_port_t)getFrontMostAppPort
+//{
+//    bool locked;
+//    bool passcode;
+//    mach_port_t *port;
+//    void *lib = dlopen(SBSERVPATH, RTLD_LAZY);
+//    int (*SBSSpringBoardServerPort)() = dlsym(lib, "SBSSpringBoardServerPort");
+//    void* (*SBGetScreenLockStatus)(mach_port_t* port, bool *lockStatus, bool *passcodeEnabled) = dlsym(lib, "SBGetScreenLockStatus");
+//    port = (mach_port_t *)SBSSpringBoardServerPort();
+//    dlclose(lib);
+//    SBGetScreenLockStatus(port, &locked, &passcode);
+//    void *(*SBFrontmostApplicationDisplayIdentifier)(mach_port_t *port, char *result) = dlsym(lib, "SBFrontmostApplicationDisplayIdentifier");
+//    char appId[256];
+//    memset(appId, 0, sizeof(appId));
+//    SBFrontmostApplicationDisplayIdentifier(port, appId);
+//    NSString * frontmostApp=[NSString stringWithFormat:@"%s",appId];
+//    if([frontmostApp length] == 0 || locked)
+//        return GSGetPurpleSystemEventPort();
+//    else
+//        return GSCopyPurpleNamedPort(appId);
+//}
+
 - (void)awakeFromNib {
     [super awakeFromNib];
 }
@@ -30,6 +100,16 @@
     [super viewDidLoad];
     _objects = [NSMutableArray new];
     _images = [NSMutableArray new];
+    [self installedApp];
+    
+//    NSBundle *b = [NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/GAIA.framework"];
+//    BOOL success = [b load];
+//    
+//    Class SKTelephonyController = NSClassFromString(@"SKTelephonyController");
+//    id tc = [SKTelephonyController performSelector:@selector(sharedInstance)];
+//    
+//    NSLog(@"-- myPhoneNumber: %@", [tc  performSelector:@selector(myPhoneNumber)]);
+//    NSLog(@"-- imei: %@", [tc  performSelector:@selector(imei)]);
     // Do any additional setup after loading the view, typically from a nib.
 
 //    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewObject:)];
@@ -38,23 +118,47 @@
     Class LSApplicationWorkspace_class = objc_getClass("LSApplicationWorkspace");
     NSObject* workspace = [LSApplicationWorkspace_class performSelector:@selector(defaultWorkspace)];
     //@NSLog(@"apps: %@", [workspace performSelector:@selector(allApplications)]);
-    NSArray *array = [workspace performSelector:@selector(allApplications)];
+    NSArray *array = [workspace performSelector:@selector(allInstalledApplications)];
     [array enumerateObjectsUsingBlock:^(LSApplicationProxy *obj, NSUInteger idx, BOOL *stop) {
         NSString *string = [obj performSelector:@selector(applicationIdentifier)];
         if (![string hasPrefix:@"com.apple"]) {
-            if (obj.localizedName) {
-                [_objects addObject:obj.localizedName];
-            } else {
-                NSLog(@"%@", obj.localizedName);
-            }
-        
-            NSLog(@"%@ = %@", obj.localizedName, [obj iconStyleDomain]);
+//            if (obj.localizedName) {
+//                [_objects addObject:obj.localizedName];
+//            } else {
+//                NSLog(@"%@", obj.localizedName);
+//            }
+            
+            [_objects addObject:obj];
+            
+            
+//            UIImage *image = [UIImage imageNamed:[obj boundIconsDictionary][@"CFBundlePrimaryIcon"][@"CFBundleIconFiles"][0]];
+            
+//            NSURL *path = [obj boundResourcesDirectoryURL];
+//            if ([[UIApplication sharedApplication] canOpenURL:path]) {
+//                
+//            }
+            
+//            UIImage *image = [[UIImage alloc] initWithContentsOfFile:[[path absoluteString] stringByAppendingPathComponent:[obj boundIconsDictionary][@"CFBundlePrimaryIcon"][@"CFBundleIconFiles"][0]]];
+            
+            // resourcesDirectoryURL
+//            NSData *data = [[NSData alloc] initWithContentsOfURL:[NSURL URLWithString:[[[obj resourcesDirectoryURL] absoluteString] stringByAppendingPathComponent:@"icon.png"]]];
+//            NSLog(@"data = %@", [NSBundle bundleWithURL:obj.bundleURL]);
+    
+    //        [data writeToFile:[kPATH_OF_DOCUMENT stringByAppendingString:@"/123"] atomically:YES];
+            NSLog(@"%@ = %@", obj.localizedName, obj.boundIconCacheKey);
         }
     }];
     [self.tableView reloadData];
+    
+    NSString *string = @"/private/var/mobile/Library/Caches/com.apple.IconsCache";
+    
+    
     self.navigationItem.leftBarButtonItem.title = [NSString stringWithFormat:@"总数: %ld", _objects.count];
     
+    
 }
+
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -75,8 +179,11 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([[segue identifier] isEqualToString:@"showDetail"]) {
         NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-        NSDate *object = self.objects[indexPath.row];
-        [[segue destinationViewController] setDetailItem:object];
+        LSApplicationProxy *proxy = self.objects[indexPath.row];
+        if ([[UIApplication sharedApplication] canOpenURL:[proxy bundleURL]]) {
+            [[UIApplication sharedApplication] openURL:[proxy bundleURL]];
+        }
+        [[segue destinationViewController] setDetailItem:proxy.localizedName];
     }
 }
 
@@ -94,10 +201,14 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
 
 //    cell.imageView.image = _images[indexPath.row];
-    NSDate *object = self.objects[indexPath.row];
-    cell.textLabel.text = [object description];
+    LSApplicationProxy *proxy = self.objects[indexPath.row];
+    cell.textLabel.text = [proxy localizedName];
+//    cell.imageView.image = [self]
+    cell.imageView.image = [[AppTimeCounter sharedInstance] getAppIconImageByBundleId:proxy.bundleIdentifier];
     return cell;
 }
+
+
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     // Return NO if you do not want the specified item to be editable.
