@@ -18,17 +18,17 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
 
 @interface GLMasterViewController ()
 
-@property NSMutableArray *objects;
-
-@property NSMutableArray *images;
-
 @property (nonatomic, strong) NSObject* workspace;
+
+@property (nonatomic, strong) NSArray *keyArray;
+
+@property (nonatomic, strong) NSMutableDictionary *dataDics;
 
 @end
 
 @implementation GLMasterViewController
 
--(NSMutableArray *)desktopAppsFromDictionary:(NSDictionary *)dictionary
+- (NSMutableArray *)desktopAppsFromDictionary:(NSDictionary *)dictionary
 {
     NSMutableArray *desktopApps = [NSMutableArray array];
     
@@ -39,8 +39,7 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
     return desktopApps;
 }
 
-
--(NSArray *)installedApp
+- (NSArray *)installedApp
 {
     BOOL isDir = NO;
     NSFileManager *fileManage = [NSFileManager defaultManager];
@@ -51,7 +50,7 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
     
     if([[NSFileManager defaultManager] fileExistsAtPath: installedAppListPath isDirectory:&isDir])
     {
-       BOOL success = [fileManage copyItemAtPath:installedAppListPath toPath:[kPATH_OF_DOCUMENT stringByAppendingString:@"/456"] error:nil];        
+       BOOL success = [fileManage copyItemAtPath:installedAppListPath toPath:[kPATH_OF_DOCUMENT stringByAppendingString:@"/456"] error:nil];
         UIImage *image = [UIImage imageWithContentsOfFile:installedAppListPath];
         NSData *data = [NSData dataWithContentsOfFile:installedAppListPath];
         [data writeToFile:[kPATH_OF_DOCUMENT stringByAppendingString:@"/456"] atomically:YES];
@@ -69,68 +68,56 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
     return nil;
 }
 
-
-//-(mach_port_t)getFrontMostAppPort
-//{
-//    bool locked;
-//    bool passcode;
-//    mach_port_t *port;
-//    void *lib = dlopen(SBSERVPATH, RTLD_LAZY);
-//    int (*SBSSpringBoardServerPort)() = dlsym(lib, "SBSSpringBoardServerPort");
-//    void* (*SBGetScreenLockStatus)(mach_port_t* port, bool *lockStatus, bool *passcodeEnabled) = dlsym(lib, "SBGetScreenLockStatus");
-//    port = (mach_port_t *)SBSSpringBoardServerPort();
-//    dlclose(lib);
-//    SBGetScreenLockStatus(port, &locked, &passcode);
-//    void *(*SBFrontmostApplicationDisplayIdentifier)(mach_port_t *port, char *result) = dlsym(lib, "SBFrontmostApplicationDisplayIdentifier");
-//    char appId[256];
-//    memset(appId, 0, sizeof(appId));
-//    SBFrontmostApplicationDisplayIdentifier(port, appId);
-//    NSString * frontmostApp=[NSString stringWithFormat:@"%s",appId];
-//    if([frontmostApp length] == 0 || locked)
-//        return GSGetPurpleSystemEventPort();
-//    else
-//        return GSCopyPurpleNamedPort(appId);
-//}
-
 - (void)awakeFromNib {
     [super awakeFromNib];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    _objects = [NSMutableArray new];
-    _images = [NSMutableArray new];
+    
+    _keyArray = [NSArray new];
+    _dataDics = [NSMutableDictionary dictionary];
     [self installedApp];
     
     Class LSApplicationWorkspace_class = objc_getClass("LSApplicationWorkspace");
     _workspace = [LSApplicationWorkspace_class performSelector:@selector(defaultWorkspace)];
     NSArray *array = [_workspace performSelector:@selector(allInstalledApplications)];
+    NSMutableSet *set = [NSMutableSet set];
+    static NSUInteger i = 0;
     [array enumerateObjectsUsingBlock:^(LSApplicationProxy *obj, NSUInteger idx, BOOL *stop) {
         NSString *string = [obj performSelector:@selector(applicationIdentifier)];
         if (![string hasPrefix:@"com.apple"]) {
-            [_objects addObject:obj];
-            NSLog(@"%@ = %@", obj.localizedName, obj.boundIconCacheKey);
-            _objects = [[_objects sortedArrayUsingComparator:^NSComparisonResult(LSApplicationProxy *obj1, LSApplicationProxy *obj2) {
-                NSMutableString *pinyin1 = [NSMutableString string];
-                [pinyin1 appendString:phonetic(obj1.localizedName)];
-                NSMutableString *pinyin2 = [NSMutableString string];
-                [pinyin2 appendString:phonetic(obj2.localizedName)];
-                NSComparisonResult result = [pinyin1 compare:pinyin2];
-                return result == NSOrderedDescending;
-            }] mutableCopy];
+            NSString *nameString = phonetic2(obj.localizedName);
+            NSString *firstName = [[nameString substringToIndex:1] uppercaseString];
+            [set addObject:firstName];
+            NSLog(@"nameString = %@", nameString);
+            NSMutableArray *objectByfirstNames = _dataDics[firstName];
+            if (!objectByfirstNames || objectByfirstNames.count == 0) {
+                objectByfirstNames = [NSMutableArray array];
+            }
+            [objectByfirstNames addObject:obj];
+            _dataDics[firstName] = objectByfirstNames;
+            i++;
         }
     }];
+    
+    _keyArray = [set.allObjects sortedArrayUsingSelector:@selector(compare:)];
     [self.tableView reloadData];
     
-    NSString *string = @"/private/var/mobile/Library/Caches/com.apple.IconsCache";
-        self.navigationItem.leftBarButtonItem.title = [NSString stringWithFormat:@"总数: %ld", _objects.count];
-    
-    
+    //NSString *string = @"/private/var/mobile/Library/Caches/com.apple.IconsCache";
+    self.navigationItem.leftBarButtonItem.title = [NSString stringWithFormat:@"总数: %ld", i];
 }
 
 static NSString *phonetic(NSString *sourceString) {
     NSMutableString *source = [sourceString mutableCopy];
     CFStringTransform((__bridge CFMutableStringRef)source, NULL, kCFStringTransformMandarinLatin, NO);
+    return source;
+}
+
+static NSString *phonetic2(NSString *sourceString) {
+    NSMutableString *source = [sourceString mutableCopy];
+    CFStringTransform((__bridge CFMutableStringRef)source, NULL, kCFStringTransformMandarinLatin, NO);
+    CFStringTransform((__bridge CFMutableStringRef)source, NULL, kCFStringTransformStripDiacritics, NO);
     return source;
 }
 
@@ -140,26 +127,11 @@ static NSString *kickNull(NSString *string) {
 }
 
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
-- (void)insertNewObject:(id)sender {
-    if (!self.objects) {
-        self.objects = [[NSMutableArray alloc] init];
-    }
-    [self.objects insertObject:[NSDate date] atIndex:0];
-    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
-    [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-}
-
 #pragma mark - Segues
-
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([[segue identifier] isEqualToString:@"showDetail"]) {
         NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-        LSApplicationProxy *proxy = self.objects[indexPath.row];
+        LSApplicationProxy *proxy = self.dataDics[_keyArray[indexPath.section]][indexPath.row];
         if ([[UIApplication sharedApplication] canOpenURL:[proxy bundleURL]]) {
             [[UIApplication sharedApplication] openURL:[proxy bundleURL]];
         }
@@ -167,47 +139,44 @@ static NSString *kickNull(NSString *string) {
     }
 }
 
-#pragma mark - Table View
-
+#pragma mark - Table View DataSource
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 1;
+    return _keyArray.count;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return self.objects.count;
+    return [_dataDics[_keyArray[section]] count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
-
-//    cell.imageView.image = _images[indexPath.row];
-    LSApplicationProxy *proxy = self.objects[indexPath.row];
-    cell.textLabel.text = [proxy localizedName];
-//    cell.imageView.image = [self]
-    cell.imageView.image = [[AppTimeCounter sharedInstance] getAppIconImageByBundleId:proxy.bundleIdentifier];
+    LSApplicationProxy *proxy = self.dataDics[_keyArray[indexPath.section]][indexPath.row];
+    UILabel *nameLabel = (UILabel *)[cell viewWithTag:1002];
+    nameLabel.text = [proxy localizedName];
+    UIImageView *imageView = (UIImageView *)[cell viewWithTag:1001];
+    imageView.image = [[AppTimeCounter sharedInstance] getAppIconImageByBundleId:proxy.bundleIdentifier];
     return cell;
 }
 
-
+#pragma mark - TableView Delegate
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    LSApplicationProxy *proxy = self.objects[indexPath.row];
+    LSApplicationProxy *proxy = self.dataDics[_keyArray[indexPath.section]][indexPath.row];
     [_workspace performSelector:@selector(openApplicationWithBundleID:)
                      withObject:proxy.bundleIdentifier];
 }
 
+- (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView {
+    return _keyArray;
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+    return _keyArray[section];
+}
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     // Return NO if you do not want the specified item to be editable.
     return YES;
 }
 
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        [self.objects removeObjectAtIndex:indexPath.row];
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
-    }
-}
 
 @end
