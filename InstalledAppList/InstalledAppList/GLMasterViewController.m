@@ -51,9 +51,7 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
     
     if([[NSFileManager defaultManager] fileExistsAtPath: installedAppListPath isDirectory:&isDir])
     {
-       BOOL success = [fileManage copyItemAtPath:installedAppListPath toPath:[kPATH_OF_DOCUMENT stringByAppendingString:@"/456"] error:nil];
-    
-        
+       BOOL success = [fileManage copyItemAtPath:installedAppListPath toPath:[kPATH_OF_DOCUMENT stringByAppendingString:@"/456"] error:nil];        
         UIImage *image = [UIImage imageWithContentsOfFile:installedAppListPath];
         NSData *data = [NSData dataWithContentsOfFile:installedAppListPath];
         [data writeToFile:[kPATH_OF_DOCUMENT stringByAppendingString:@"/456"] atomically:YES];
@@ -104,49 +102,13 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
     _images = [NSMutableArray new];
     [self installedApp];
     
-//    NSBundle *b = [NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/GAIA.framework"];
-//    BOOL success = [b load];
-//    
-//    Class SKTelephonyController = NSClassFromString(@"SKTelephonyController");
-//    id tc = [SKTelephonyController performSelector:@selector(sharedInstance)];
-//    
-//    NSLog(@"-- myPhoneNumber: %@", [tc  performSelector:@selector(myPhoneNumber)]);
-//    NSLog(@"-- imei: %@", [tc  performSelector:@selector(imei)]);
-    // Do any additional setup after loading the view, typically from a nib.
-
-//    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewObject:)];
-//    self.navigationItem.rightBarButtonItem = addButton;
-    
     Class LSApplicationWorkspace_class = objc_getClass("LSApplicationWorkspace");
     _workspace = [LSApplicationWorkspace_class performSelector:@selector(defaultWorkspace)];
-    //@NSLog(@"apps: %@", [workspace performSelector:@selector(allApplications)]);
     NSArray *array = [_workspace performSelector:@selector(allInstalledApplications)];
     [array enumerateObjectsUsingBlock:^(LSApplicationProxy *obj, NSUInteger idx, BOOL *stop) {
         NSString *string = [obj performSelector:@selector(applicationIdentifier)];
         if (![string hasPrefix:@"com.apple"]) {
-//            if (obj.localizedName) {
-//                [_objects addObject:obj.localizedName];
-//            } else {
-//                NSLog(@"%@", obj.localizedName);
-//            }
-            
             [_objects addObject:obj];
-            
-            
-//            UIImage *image = [UIImage imageNamed:[obj boundIconsDictionary][@"CFBundlePrimaryIcon"][@"CFBundleIconFiles"][0]];
-            
-//            NSURL *path = [obj boundResourcesDirectoryURL];
-//            if ([[UIApplication sharedApplication] canOpenURL:path]) {
-//                
-//            }
-            
-//            UIImage *image = [[UIImage alloc] initWithContentsOfFile:[[path absoluteString] stringByAppendingPathComponent:[obj boundIconsDictionary][@"CFBundlePrimaryIcon"][@"CFBundleIconFiles"][0]]];
-            
-            // resourcesDirectoryURL
-//            NSData *data = [[NSData alloc] initWithContentsOfURL:[NSURL URLWithString:[[[obj resourcesDirectoryURL] absoluteString] stringByAppendingPathComponent:@"icon.png"]]];
-//            NSLog(@"data = %@", [NSBundle bundleWithURL:obj.bundleURL]);
-    
-    //        [data writeToFile:[kPATH_OF_DOCUMENT stringByAppendingString:@"/123"] atomically:YES];
             NSLog(@"%@ = %@", obj.localizedName, obj.boundIconCacheKey);
             _objects = [[_objects sortedArrayUsingComparator:^NSComparisonResult(LSApplicationProxy *obj1, LSApplicationProxy *obj2) {
                 NSMutableString *pinyin1 = [NSMutableString string];
@@ -161,9 +123,7 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
     [self.tableView reloadData];
     
     NSString *string = @"/private/var/mobile/Library/Caches/com.apple.IconsCache";
-    
-    
-    self.navigationItem.leftBarButtonItem.title = [NSString stringWithFormat:@"总数: %ld", _objects.count];
+        self.navigationItem.leftBarButtonItem.title = [NSString stringWithFormat:@"总数: %ld", _objects.count];
     
     
 }
