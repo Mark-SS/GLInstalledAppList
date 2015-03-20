@@ -6,27 +6,27 @@
 //  Copyright (c) 2014年 GL. All rights reserved.
 //
 
-#import "GLMasterViewController.h"
-#import "GLDetailViewController.h"
+#import "TodayViewController.h"
 #import <objc/runtime.h>
-#import <MobileCoreServices/MobileCoreServices.h>
 #import <dlfcn.h>
 #import "AppTimeCounter.h"
+#import <MobileCoreServices/MobileCoreServices.h>
 
 #define kPATH_OF_DOCUMENT   [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0]
 static NSString* const installedAppListPath = @"/private/var/mobile/Library/Caches/com.apple.IconsCache";
 
-@interface GLMasterViewController ()
+static CGFloat kDefaultHeight = 400.0f;
 
+@interface TodayViewController ()
+
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (nonatomic, strong) NSObject* workspace;
-
 @property (nonatomic, strong) NSArray *keyArray;
-
 @property (nonatomic, strong) NSMutableDictionary *dataDics;
 
 @end
 
-@implementation GLMasterViewController
+@implementation TodayViewController
 
 - (NSMutableArray *)desktopAppsFromDictionary:(NSDictionary *)dictionary
 {
@@ -45,12 +45,12 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
     NSFileManager *fileManage = [NSFileManager defaultManager];
     BOOL aa = [[NSFileManager defaultManager] fileExistsAtPath: installedAppListPath isDirectory: &isDir];
     NSArray *file = [fileManage subpathsOfDirectoryAtPath: installedAppListPath error:nil];
-    ////NSLog(@"%@",file);
-
+    NSLog(@"%@",file);
+    
     
     if([[NSFileManager defaultManager] fileExistsAtPath: installedAppListPath isDirectory:&isDir])
     {
-       BOOL success = [fileManage copyItemAtPath:installedAppListPath toPath:[kPATH_OF_DOCUMENT stringByAppendingString:@"/456"] error:nil];
+        BOOL success = [fileManage copyItemAtPath:installedAppListPath toPath:[kPATH_OF_DOCUMENT stringByAppendingString:@"/456"] error:nil];
         UIImage *image = [UIImage imageWithContentsOfFile:installedAppListPath];
         NSData *data = [NSData dataWithContentsOfFile:installedAppListPath];
         [data writeToFile:[kPATH_OF_DOCUMENT stringByAppendingString:@"/456"] atomically:YES];
@@ -64,7 +64,7 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
         return installedApp;
     }
     
-    //NSLog(@"can not find installed app plist");
+    NSLog(@"can not find installed app plist");
     return nil;
 }
 
@@ -74,6 +74,10 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    NSLog(@"view did load");
+    
+    self.preferredContentSize = CGSizeMake(0, kDefaultHeight);
+
     
     _keyArray = [NSArray new];
     _dataDics = [NSMutableDictionary dictionary];
@@ -90,7 +94,7 @@ static NSString* const installedAppListPath = @"/private/var/mobile/Library/Cach
             NSString *nameString = phonetic2(obj.localizedName);
             NSString *firstName = [[nameString substringToIndex:1] uppercaseString];
             [set addObject:firstName];
-            //NSLog(@"nameString = %@", nameString);
+            NSLog(@"nameString = %@", nameString);
             NSMutableArray *objectByfirstNames = _dataDics[firstName];
             if (!objectByfirstNames || objectByfirstNames.count == 0) {
                 objectByfirstNames = [NSMutableArray array];
@@ -127,18 +131,6 @@ static NSString *kickNull(NSString *string) {
 }
 
 
-#pragma mark - Segues
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    if ([[segue identifier] isEqualToString:@"showDetail"]) {
-        NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-        LSApplicationProxy *proxy = self.dataDics[_keyArray[indexPath.section]][indexPath.row];
-        if ([[UIApplication sharedApplication] canOpenURL:[proxy bundleURL]]) {
-            [[UIApplication sharedApplication] openURL:[proxy bundleURL]];
-        }
-        [[segue destinationViewController] setDetailItem:proxy.localizedName];
-    }
-}
-
 #pragma mark - Table View DataSource
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return _keyArray.count;
@@ -152,6 +144,7 @@ static NSString *kickNull(NSString *string) {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
     LSApplicationProxy *proxy = self.dataDics[_keyArray[indexPath.section]][indexPath.row];
     UILabel *nameLabel = (UILabel *)[cell viewWithTag:1002];
+    nameLabel.backgroundColor = [UIColor yellowColor];
     nameLabel.text = [proxy localizedName];
     UIImageView *imageView = (UIImageView *)[cell viewWithTag:1001];
     imageView.image = [[AppTimeCounter sharedInstance] getAppIconImageByBundleId:proxy.bundleIdentifier];
@@ -161,8 +154,7 @@ static NSString *kickNull(NSString *string) {
 #pragma mark - TableView Delegate
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     LSApplicationProxy *proxy = self.dataDics[_keyArray[indexPath.section]][indexPath.row];
-    [_workspace performSelector:@selector(openApplicationWithBundleID:)
-                     withObject:proxy.bundleIdentifier];
+    [self.extensionContext openURL:[proxy bundleURL] completionHandler:nil];
 }
 
 - (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView {
